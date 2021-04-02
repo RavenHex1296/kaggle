@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
 import sys
 
 df = pd.read_csv('/home/runner/kaggle/titanic/dataset_of_knowns.csv')
@@ -94,12 +95,14 @@ y_test = testing_array[:,0]
 X_train = training_array[:,1:]
 X_test = testing_array[:,1:]
 
-regressor = LinearRegression()
+#regressor = LinearRegression()
+regressor = LogisticRegression(max_iter=1000)
 regressor.fit(X_train, y_train)
 
 coefficients = {}
 feature_columns = training_df.columns[1:]
-feature_coefficients = regressor.coef_
+#feature_coefficients = regressor.coef_
+feature_coefficients = regressor.coef_[0]
 
 for n in range(len(feature_columns)):
     column = feature_columns[n]
@@ -140,5 +143,7 @@ print("\n", "features:", features_to_use, "\n")
 print("training accuracy:", get_accuracy(y_train_predictions, y_train))
 print("testing accuracy:", get_accuracy(y_test_predictions, y_test), "\n")
 
-coefficients['constant'] = regressor.intercept_
+#coefficients['constant'] = regressor.intercept_
+#print({k: round(v, 4) for k, v in coefficients.items()})
+coefficients['constant'] = regressor.intercept_[0]
 print({k: round(v, 4) for k, v in coefficients.items()})
