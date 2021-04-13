@@ -26,7 +26,7 @@ age_nan = df['Age'].apply(lambda entry: np.isnan(entry))
 age_not_nan = df['Age'].apply(lambda entry: not np.isnan(entry))
 
 mean_age = df['Age'][age_not_nan].mean()
-df['Age'][age_nan] = mean_age
+df.loc[age_nan, ['Age']] = mean_age
 
 
 #SipSp
@@ -79,9 +79,51 @@ del df['Embarked']
 
 
 features_to_use = ['Sex', 'Pclass', 'Fare', 'Age', 'SibSp', 'SibSp>0', 'Parch>0', 'Embarked=C', 'Embarked=None', 'Embarked=Q', 'Embarked=S', 'CabinType=A', 'CabinType=B', 'CabinType=C', 'CabinType=D', 'CabinType=E', 'CabinType=F', 'CabinType=G', 'CabinType=None', 'CabinType=T']
+
+
+interactions = {}
+used_features = []
+
+for feature in features_to_use:
+    if 'SibSp' not in feature and 'Embarked=' not in feature and 'CabinType=' not in feature:
+        used_features.append(feature)
+        interactions[feature] = [non_redundant_feature for non_redundant_feature in features_to_use if non_redundant_feature not in used_features]
+        used_features.append(feature)
+
+    if 'SibSp' in feature:
+        used_features.append('SibSp')
+        used_features.append('SibSp>0')
+        interactions[feature] = [non_redundant_feature for non_redundant_feature in features_to_use if non_redundant_feature not in used_features]
+
+    if 'Embarked=' in feature:
+        used_features.append('Embarked=C')
+        used_features.append('Embarked=None')
+        used_features.append('Embarked=Q')
+        used_features.append('Embarked=S')
+        interactions[feature] = [non_redundant_feature for non_redundant_feature in features_to_use if non_redundant_feature not in used_features]
+
+    if 'CabinType=' in feature:
+        used_features.append('CabinType=A')
+        used_features.append('CabinType=B')
+        used_features.append('CabinType=C')
+        used_features.append('CabinType=D')
+        used_features.append('CabinType=E')
+        used_features.append('CabinType=F')
+        used_features.append('CabinType=G')
+        used_features.append('CabinType=None')
+        used_features.append('CabinType=T')
+        interactions[feature] = [non_redundant_feature for non_redundant_feature in features_to_use if non_redundant_feature not in used_features]
+
+
+for feature, non_redundant_features in interactions.items():
+    for non_redundant_feature in non_redundant_features: 
+        interaction_term = '{} * {}'.format(feature, non_redundant_feature)
+        df[interaction_term] = df[feature] * df[non_redundant_feature]
+        features_to_use += [interaction_term]
+
+
 columns = ['Survived'] + features_to_use
 df = df[columns]
-
 
 training_df = df[:500]
 testing_df = df[500:]
@@ -96,7 +138,7 @@ X_train = training_array[:,1:]
 X_test = testing_array[:,1:]
 
 #regressor = LinearRegression()
-regressor = LogisticRegression(max_iter=1000)
+regressor = LogisticRegression(max_iter=10000)
 regressor.fit(X_train, y_train)
 
 coefficients = {}
@@ -139,11 +181,11 @@ def get_accuracy(predictions, actual):
 
 
 print('\n')
-print("\n", "features:", features_to_use, "\n")
+#print("\n", "features:", features_to_use, "\n")
 print("training accuracy:", get_accuracy(y_train_predictions, y_train))
 print("testing accuracy:", get_accuracy(y_test_predictions, y_test), "\n")
 
 #coefficients['constant'] = regressor.intercept_
 #print({k: round(v, 4) for k, v in coefficients.items()})
 coefficients['constant'] = regressor.intercept_[0]
-print({k: round(v, 4) for k, v in coefficients.items()})
+#print({k: round(v, 4) for k, v in coefficients.items()})
