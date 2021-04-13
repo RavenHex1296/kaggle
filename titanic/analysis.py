@@ -88,7 +88,6 @@ for feature in features_to_use:
     if 'SibSp' not in feature and 'Embarked=' not in feature and 'CabinType=' not in feature:
         used_features.append(feature)
         interactions[feature] = [non_redundant_feature for non_redundant_feature in features_to_use if non_redundant_feature not in used_features]
-        used_features.append(feature)
 
     if 'SibSp' in feature:
         used_features.append('SibSp')
