@@ -1,9 +1,12 @@
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression, LogisticRegression
+from warnings import simplefilter
+from sklearn.exceptions import ConvergenceWarning
 import sys
 
-# read in the data
+simplefilter("ignore", category=ConvergenceWarning)
+
 df = pd.read_csv('/home/runner/kaggle/titanic/dataset_of_knowns.csv')
 
 wanted_columns = ['Survived', 'Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Cabin', 'Embarked']
@@ -156,7 +159,7 @@ def get_set_accuracy(df, features, acc_type):
     X_train = training_array[:, 1:]
     X_test = testing_array[:, 1:]
 
-    regressor = LogisticRegression(max_iter=1000)
+    regressor = LogisticRegression(max_iter=100, random_state=0)
     regressor.fit(X_train, y_train)
 
     if acc_type == "Train":
@@ -185,7 +188,7 @@ def next_feature(df, features, wanted_features):
 
    return best_feature
 
-
+'''
 wanted_features = [next_feature(df, features_to_use, [])]
 training_accuracy = get_set_accuracy(df, ['Sex'], "Train")
 testing_accuracy = get_set_accuracy(df, ['Sex'], "Test")
@@ -204,3 +207,36 @@ while next_possible_feature != None:
     print("training:", training_accuracy)
     print("testing:", testing_accuracy, "\n")
     next_possible_feature = next_feature(df, features_to_use, wanted_features)
+'''
+
+
+all_features = [feature for feature in df.columns if feature != 'Survived']
+baseline_features = [feature for feature in all_features]
+baseline_testing_accuracy = get_set_accuracy(df, baseline_features, "Test")
+print("Training:", get_set_accuracy(df, all_features, "Train"))
+print("Testing:", get_set_accuracy(df, all_features, "Test"), "\n")
+removed_indices = []
+
+for index, feature in enumerate(all_features):
+    baseline_features.remove(feature)
+    training_accuracy = get_set_accuracy(df, baseline_features, "Train")
+    testing_accurary = get_set_accuracy(df, baseline_features, "Test")
+    print("Candidate to remove: {} (index {})".format(feature, index))
+    print("Training:", training_accuracy)
+    print("Testing:", testing_accurary)
+
+    if testing_accurary < baseline_testing_accuracy:
+        baseline_features.insert(index, feature)
+        print("Kept")
+
+
+    else:
+        baseline_testing_accuracy = testing_accurary
+        removed_indices.append(index)
+        print("Removed")
+
+    print("Baseline testing accuracy:", baseline_testing_accuracy)
+    print("Removed indices:", removed_indices)
+    print("")
+
+print(baseline_testing_accuracy)
