@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 import sys
 
-df = pd.read_csv('/home/runner/kaggle/data-scientist-hiring.csv')
+df = pd.read_csv('/home/runner/kaggle/quizzes/data-scientist-hiring.csv')
 
 #print("Mean number of training hours:", df['training_hours'].mean(),  "\n")
 
@@ -35,16 +35,14 @@ for city in df['city'].unique():
 
 #print(most_id)
 
-less_than_10 = 0
 
-for size in df['company_size']:
-    size = str(size)
-    max_size = int(size[3:])
+company_size_counts = df['company_size'].value_counts()
 
-    if max_size < 10:
-        less_than_10 += 1
+#print(company_size_counts['<10'])
 
-    if size == NaN:
-        less_than_10 += 0
 
-print(less_than_10)
+total = company_size_counts['<10'] + \
+        company_size_counts['10/49'] + \
+        company_size_counts['50-99']
+
+#print(total)
